@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>116學科能力測驗倒數 - 柿米果幸福快樂屋</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary-text: #2d3436;
+            --secondary-text: #636e72;
+            --accent-color: #e67e22; /* 活力橘 */
+            --medical-blue: #0984e3; /* 象徵醫學系的冷靜藍 */
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .exam-card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 頂部裝飾條 */
+        .exam-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-color), var(--medical-blue));
+        }
+
+        .exam-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary-text);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .exam-date {
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+            background: #f1f2f6;
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .countdown-container {
+            margin: 20px 0;
+        }
+
+        .countdown-display {
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            line-height: 1;
+            text-shadow: 2px 2px 0px rgba(230, 126, 34, 0.1);
+        }
+
+        .unit-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #b2bec3;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        .quote {
+            margin-top: 25px;
+            padding: 15px;
+            font-size: 0.95rem;
+            color: var(--medical-blue);
+            border-top: 1px dashed #dfe6e9;
+            font-weight: 500;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #b2bec3;
+            line-height: 1.6;
+        }
+
+        .target-goal {
+            color: var(--primary-text);
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="exam-card">
+    <div class="exam-title">116 學科能力測驗</div>
+    <div class="exam-date">2027-01-16 ~ 01-18 (預計)</div>
+    
+    <div class="countdown-container">
+        <div class="countdown-display" id="days-val">000</div>
+        <div class="unit-label">Days Left</div>
+    </div>
+
+    <div class="quote">
+        「所有的努力，都會在放榜那天開花結果。」
+    </div>
+
+    <div class="footer-note">
+        © 2026 柿米果幸福快樂屋
+        <span class="target-goal">目標：滿級分醫學系 🩺</span>
+    </div>
+</div>
+
+<script>
+    function calculateCountdown() {
+        // 設定目標日期
+        const target = new Date('2027-01-16T00:00:00');
+        const now = new Date();
+        
+        // 取得純日期物件
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+        
+        const diffTime = targetDay - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const display = document.getElementById('days-val');
+        
+        if (diffDays > 0) {
+            display.innerText = diffDays;
+        } else if (diffDays === 0) {
+            display.innerText = "NOW";
+            document.querySelector('.unit-label').innerText = "考試當天";
+        } else {
+            display.innerText = "END";
+            document.querySelector('.unit-label').innerText = "金榜題名";
+        }
+    }
+
+    calculateCountdown();
+</script>
+
+</body>
+</html>
