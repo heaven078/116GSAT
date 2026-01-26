@@ -38,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* 頂部裝飾條 */
         .exam-card::before {
             content: "";
             position: absolute;
@@ -89,6 +88,16 @@
             margin-top: 5px;
         }
 
+        /* 小小的時分秒樣式 */
+        .time-sub {
+            font-size: 1rem;
+            color: var(--secondary-text);
+            margin-top: 15px;
+            font-family: monospace; /* 等寬字體避免數字跳動 */
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
         .quote {
             margin-top: 25px;
             padding: 15px;
@@ -122,6 +131,7 @@
     <div class="countdown-container">
         <div class="countdown-display" id="days-val">000</div>
         <div class="unit-label">Days Left</div>
+        <div class="time-sub" id="time-val">00 : 00 : 00</div>
     </div>
 
     <div class="quote">
@@ -135,32 +145,37 @@
 </div>
 
 <script>
-    function calculateCountdown() {
-        // 設定目標日期
-        const target = new Date('2027-01-16T00:00:00');
-        const now = new Date();
-        
-        // 取得純日期物件
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-        
-        const diffTime = targetDay - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        const display = document.getElementById('days-val');
-        
-        if (diffDays > 0) {
-            display.innerText = diffDays;
-        } else if (diffDays === 0) {
-            display.innerText = "NOW";
-            document.querySelector('.unit-label').innerText = "考試當天";
-        } else {
-            display.innerText = "END";
-            document.querySelector('.unit-label').innerText = "金榜題名";
+    function updateCountdown() {
+        const target = new Date('2027-01-16T00:00:00').getTime();
+        const now = new Date().getTime();
+        const diff = target - now;
+
+        const dDisplay = document.getElementById('days-val');
+        const tDisplay = document.getElementById('time-val');
+        const unitLabel = document.querySelector('.unit-label');
+
+        if (diff <= 0) {
+            dDisplay.innerText = "NOW";
+            tDisplay.innerText = "00 : 00 : 00";
+            unitLabel.innerText = "考試當天";
+            return;
         }
+
+        // 計算天、時、分、秒
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        // 更新顯示
+        dDisplay.innerText = days;
+        tDisplay.innerText = 
+            `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
     }
 
-    calculateCountdown();
+    // 每秒執行一次
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
 </script>
 
 </body>
