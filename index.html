@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>116學科能力測驗倒數 - 柿米果幸福快樂屋</title>
+    
     <link rel="apple-touch-icon" href="doctor.jpg">
     <link rel="icon" type="image/jpeg" href="doctor_s2.jpg">
+    
     <style>
         :root {
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --primary-text: #2d3436;
             --secondary-text: #636e72;
-            --accent-color: #e67e22; /* 活力橘 */
-            --medical-blue: #0984e3; /* 象徵醫學系的冷靜藍 */
+            --accent-color: #e67e22; 
+            --medical-blue: #0984e3; 
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
@@ -24,7 +26,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .exam-card {
@@ -37,6 +39,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         .exam-card::before {
@@ -54,7 +57,6 @@
             font-weight: bold;
             color: var(--primary-text);
             margin-bottom: 12px;
-            letter-spacing: 1px;
         }
 
         .exam-date {
@@ -64,12 +66,7 @@
             display: inline-block;
             padding: 6px 18px;
             border-radius: 50px;
-            margin-bottom: 30px;
-            font-weight: 500;
-        }
-
-        .countdown-container {
-            margin: 20px 0;
+            margin-bottom: 25px;
         }
 
         .countdown-display {
@@ -77,7 +74,6 @@
             font-weight: 900;
             color: var(--accent-color);
             line-height: 1;
-            text-shadow: 2px 2px 0px rgba(230, 126, 34, 0.1);
         }
 
         .unit-label {
@@ -86,65 +82,131 @@
             color: #b2bec3;
             text-transform: uppercase;
             letter-spacing: 4px;
-            margin-top: 5px;
         }
 
-        /* 小小的時分秒樣式 */
         .time-sub {
             font-size: 1rem;
             color: var(--secondary-text);
-            margin-top: 15px;
-            font-family: monospace; /* 等寬字體避免數字跳動 */
-            letter-spacing: 1px;
-            opacity: 0.8;
+            margin-top: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 2px;
         }
 
-        .quote {
+        .quote-box {
             margin-top: 25px;
             padding: 15px;
+            border-top: 1px dashed #dfe6e9;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #quote-text {
             font-size: 0.95rem;
             color: var(--medical-blue);
-            border-top: 1px dashed #dfe6e9;
             font-weight: 500;
+        }
+
+        .click-hint {
+            font-size: 0.7rem;
+            color: #ccc;
+            display: block;
         }
 
         .footer-note {
             margin-top: 20px;
             font-size: 0.8rem;
             color: #b2bec3;
-            line-height: 1.6;
         }
 
         .target-goal {
             color: var(--primary-text);
             font-weight: bold;
-            display: block;
-            margin-top: 5px;
+        }
+
+        /* --- 橫向模式優化 (手機橫著看時) --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .exam-card {
+                max-width: 85%;
+                padding: 15px 30px;
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 15px;
+                align-items: center;
+                text-align: left;
+            }
+
+            .exam-card::before { height: 4px; }
+
+            /* 左側區塊：標題與目標 */
+            .header-section { grid-column: 1; }
+            .exam-title { font-size: 1.2rem; margin-bottom: 5px; }
+            .exam-date { font-size: 0.7rem; margin-bottom: 10px; padding: 4px 12px; }
+            .footer-note { margin-top: 10px; text-align: left; }
+
+            /* 右側區塊：數字與計時 */
+            .countdown-section { 
+                grid-column: 2; 
+                border-left: 1px solid #eee;
+                padding-left: 20px;
+            }
+            .countdown-display { font-size: 3.5rem; text-align: center; }
+            .unit-label { font-size: 0.8rem; text-align: center; display: block; }
+            .time-sub { font-size: 0.9rem; text-align: center; margin-top: 5px; }
+
+            /* 底部語錄：橫跨兩欄 */
+            .quote-box { 
+                grid-column: 1 / span 2; 
+                margin-top: 5px; 
+                padding: 8px; 
+                border-top: 1px solid #eee;
+                text-align: center;
+            }
+            .click-hint { display: none; } /* 節省空間 */
         }
     </style>
 </head>
 <body>
 
 <div class="exam-card">
-    <div class="exam-title">116 學科能力測驗</div>
-    <div class="exam-date">2027-01-16 ~ 01-18 (預計)</div>
+    <div class="header-section">
+        <div class="exam-title">116 學科能力測驗</div>
+        <div class="exam-date">2027-01-16 ~ 01-18 (預計)</div>
+        <div class="footer-note">
+            © 2026 柿米果幸福快樂屋
+            <span class="target-goal">目標：滿級分醫學系 🩺</span>
+        </div>
+    </div>
     
-    <div class="countdown-container">
-        <div class="countdown-display" id="days-val">000</div>
-        <div class="unit-label">Days Left</div>
-        <div class="time-sub" id="time-val">00 : 00 : 00</div>
+    <div class="countdown-section">
+        <div class="countdown-container">
+            <div class="countdown-display" id="days-val">000</div>
+            <div class="unit-label">Days Left</div>
+            <div class="time-sub" id="time-val">00 : 00 : 00</div>
+        </div>
     </div>
 
-    <div class="quote">
-        「所有的努力，都會在放榜那天開花結果。」
-    </div>
-
-    <div class="footer-note">
-        © 2026 柿米果幸福快樂屋
+    <div class="quote-box" onclick="refreshQuote()">
+        <div id="quote-text">「所有的努力，都會在放榜那天開花結果。」</div>
+        <span class="click-hint">(點擊更換語錄)</span>
     </div>
 </div>
 
 <script>
+    const quotes = [
+        "所有的努力，都會在放榜那天開花結果。",
+        "現在辛苦一點，是為了以後選擇權在自己手上。",
+        "穿上白袍的那天，你會感謝現在拚命的自己。",
+        "醫學系不只是夢想，是即將實現的目標。",
+        "靜下心來，專注於眼前的每一道題目。",
+        "你流過的汗水，會變成未來診間裡的從容。",
+        "目標滿級分：不是因為容易，而是因為值得。",
+        "哪怕只有 1% 的機會，也要付出 100% 的努力。",
+        "今天的自律，是為了明天更自由的靈魂。",
+        "進步不是一天兩天，而是日積月累的堅持。",
+        "想想你為什麼出發，夢想就在不遠處。",
+        "當你想要放棄時，想想當初為什麼堅持。"
+    ];
+
     function updateCountdown() {
         const target = new Date('2027-01-16T00:00:00').getTime();
         const now = new Date().getTime();
@@ -161,21 +223,28 @@
             return;
         }
 
-        // 計算天、時、分、秒
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 更新顯示
         dDisplay.innerText = days;
-        tDisplay.innerText = 
-            `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
+        tDisplay.innerText = `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
     }
 
-    // 每秒執行一次
+    function refreshQuote() {
+        const quoteElement = document.getElementById('quote-text');
+        let currentQuote = quoteElement.innerText.replace(/[「」]/g, '');
+        let newQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        while (newQuote === currentQuote) {
+            newQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        }
+        quoteElement.innerText = `「${newQuote}」`;
+    }
+
     setInterval(updateCountdown, 1000);
     updateCountdown();
+    refreshQuote();
 </script>
 
 </body>
