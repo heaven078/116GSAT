@@ -58,22 +58,30 @@
             margin-bottom: 12px;
         }
 
+        /* 日期區塊排版優化 */
         .date-container {
             margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--secondary-text);
         }
 
         .exam-date-input {
-            font-size: 1rem;
-            color: var(--secondary-text);
+            font-size: 0.95rem;
+            color: var(--medical-blue);
             background: #f1f2f6;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 50px;
             font-family: inherit;
             cursor: pointer;
             outline: none;
             text-align: center;
             -webkit-appearance: none;
+            font-weight: 600;
         }
 
         .countdown-display {
@@ -128,12 +136,6 @@
             cursor: pointer;
             display: inline-block;
             transition: all 0.2s;
-            user-select: none;
-        }
-
-        .target-goal-btn:active {
-            background-color: #e9ecef;
-            transform: scale(0.98);
         }
 
         #display-goal {
@@ -145,6 +147,7 @@
         @media (max-height: 500px) and (orientation: landscape) {
             .exam-card { max-width: 85%; padding: 15px 30px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px; align-items: center; text-align: left;}
             .header-section { grid-column: 1; }
+            .date-container { justify-content: flex-start; margin-bottom: 10px; }
             .countdown-section { grid-column: 2; border-left: 1px solid #eee; padding-left: 20px;}
             .quote-box { grid-column: 1 / span 2; margin-top: 5px; padding: 8px; border-top: 1px solid #eee; text-align: center;}
         }
@@ -156,6 +159,7 @@
     <div class="header-section">
         <div class="exam-title" id="main-title">學科能力測驗</div>
         <div class="date-container">
+            <span>考試日期：</span>
             <input type="date" id="target-date" class="exam-date-input" onchange="saveDate()">
         </div>
         <div class="footer-note">
@@ -190,7 +194,7 @@
         "哪怕只有 1% 的機會，也要付出 100% 的努力。",
         "今天的自律，是為了明天更自由的靈魂。",
         "進步不是一天兩天，而是日積月累的堅持。",
-        "想想你為什麼出發，夢夢就在不遠處。",
+        "想想你為什麼出發，夢想就在不遠處。",
         "當你想要放棄時，想想當初為什麼堅持。",
         "現在的每一滴汗水，都是在為未來的驚喜做鋪墊。",
         "學測不是終點，而是讓你走向更廣闊世界的起點。",
@@ -211,16 +215,15 @@
     function loadSavedData() {
         dateInput.value = localStorage.getItem('examTargetDate') || '2027-01-16';
         goalDisplay.innerText = localStorage.getItem('examTargetGoal') || '學測滿級分';
-        updateTitleYear(); // 載入後先更新一次標題
+        updateTitleYear();
     }
 
     function saveDate() {
         localStorage.setItem('examTargetDate', dateInput.value);
-        updateTitleYear(); // 修改日期後即時更新標題
+        updateTitleYear();
         updateCountdown();
     }
 
-    // 核心邏輯：換算民國年並更新標題
     function updateTitleYear() {
         const selectedYear = new Date(dateInput.value).getFullYear();
         if (selectedYear) {
@@ -253,7 +256,7 @@
         if (diff <= 0) {
             dDisplay.innerText = "NOW";
             tDisplay.innerText = "00 : 00 : 00";
-            unitLabel.innerText = "考試當天";
+            unitLabel.innerText = "Days";
             return;
         }
 
