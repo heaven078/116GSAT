@@ -58,13 +58,31 @@
 
         #quote-text { font-size: 0.95rem; color: var(--medical-blue); font-weight: 500; white-space: nowrap; display: block; text-overflow: ellipsis; overflow: hidden; }
         
+        .mgmt-btn { font-size: 0.7rem; color: var(--medical-blue); text-decoration: underline; cursor: pointer; margin-top: 5px; display: block; }
         .target-goal-btn { margin-top: 10px; padding: 8px 15px; background-color: #f8f9fa; border: 1px solid #eee; border-radius: 10px; cursor: pointer; display: inline-block; }
         #display-goal { color: var(--primary-text); font-weight: bold; text-decoration: underline dotted #ccc; }
-
         .page-footer { font-size: 0.65rem; color: #b2bec3; text-align: center; padding-bottom: 20px; }
-        
-        /* 簡單的管理彈窗樣式 */
-        .mgmt-btn { font-size: 0.7rem; color: var(--medical-blue); text-decoration: underline; cursor: pointer; margin-top: 5px; display: block; }
+
+        /* 管理面板樣式 */
+        #mgmt-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .mgmt-content {
+            background: white; width: 90%; max-width: 450px; height: 80vh;
+            border-radius: 15px; padding: 20px; display: flex; flex-direction: column;
+        }
+        .mgmt-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .quote-list { flex: 1; overflow-y: auto; margin: 15px 0; padding-right: 5px; }
+        .quote-item { display: flex; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
+        .quote-item span { flex: 1; }
+        .btn { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 0.8rem; }
+        .btn-edit { background: #e3f2fd; color: #1976d2; }
+        .btn-del { background: #ffebee; color: #c62828; }
+        .btn-add { background: var(--medical-blue); color: white; width: 100%; padding: 10px; }
+        .close-overlay { font-size: 1.5rem; cursor: pointer; color: #ccc; }
     </style>
 </head>
 <body>
@@ -88,12 +106,25 @@
     </div>
 
     <div class="quote-box" onclick="nextQuote()">
-        <div id="quote-text">載入語錄中...</div>
-        <span class="mgmt-btn" onclick="manageQuotes(event)">管理語錄庫 (新增/刪除)</span>
+        <div id="quote-text">載入中...</div>
+        <span class="mgmt-btn" onclick="openMgmt(event)">管理所有語錄</span>
     </div>
 </div>
 
 <div class="page-footer">© 2026 柿米果幸福快樂屋</div>
+
+<div id="mgmt-overlay">
+    <div class="mgmt-content">
+        <div class="mgmt-header">
+            <h3 style="margin:0">語錄庫管理</h3>
+            <span class="close-overlay" onclick="closeMgmt()">&times;</span>
+        </div>
+        <div class="quote-list" id="quote-list-container">
+            </div>
+        <button class="btn btn-add" onclick="addNewQuote()">+ 新增一句勵志語錄</button>
+        <button class="btn" style="margin-top:10px; color:#999" onclick="resetDefault()">恢復預設語錄</button>
+    </div>
+</div>
 
 <script>
     const defaultQuotes = [
@@ -109,44 +140,76 @@
         "重要的不是你現在排在哪裡，而是你正朝著哪個方向進發。"
     ];
 
-    let userQuotes = JSON.parse(localStorage.getItem('userQuotes')) || defaultQuotes;
+    let userQuotes = JSON.parse(localStorage.getItem('userQuotes')) || [...defaultQuotes];
 
     function nextQuote() {
         const rand = Math.floor(Math.random() * userQuotes.length);
         document.getElementById('quote-text').innerText = `「${userQuotes[rand]}」`;
     }
 
-    function manageQuotes(e) {
-        e.stopPropagation(); // 防止觸發下一句
-        const action = prompt("請選擇操作：\n1. 新增語錄\n2. 刪除當前語錄\n3. 重設為預設語錄\n(輸入數字即可)");
-        
-        if (action === "1") {
-            const newQ = prompt("請輸入新的語錄：");
-            if (newQ) {
-                userQuotes.push(newQ);
-                saveQuotes();
-                alert("已新增！");
-            }
-        } else if (action === "2") {
-            const current = document.getElementById('quote-text').innerText.replace(/[「」]/g, '');
-            if (userQuotes.length <= 1) return alert("至少要保留一句語錄喔！");
-            userQuotes = userQuotes.filter(q => q !== current);
-            saveQuotes();
-            nextQuote();
-            alert("已刪除！");
-        } else if (action === "3") {
-            if (confirm("確定要恢復初始的 10 句語錄並刪除自訂內容嗎？")) {
-                userQuotes = [...defaultQuotes];
-                saveQuotes();
-                nextQuote();
-            }
+    function openMgmt(e) {
+        e.stopPropagation();
+        renderList();
+        document.getElementById('mgmt-overlay').style.display = 'flex';
+    }
+
+    function closeMgmt() {
+        document.getElementById('mgmt-overlay').style.display = 'none';
+    }
+
+    function renderList() {
+        const container = document.getElementById('quote-list-container');
+        container.innerHTML = '';
+        userQuotes.forEach((q, index) => {
+            const item = document.createElement('div');
+            item.className = 'quote-item';
+            item.innerHTML = `
+                <span>${q}</span>
+                <button class="btn btn-edit" onclick="editQuote(${index})">改</button>
+                <button class="btn btn-del" onclick="deleteQuote(${index})">刪</button>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function addNewQuote() {
+        const val = prompt("請輸入新的語錄：");
+        if (val && val.trim()) {
+            userQuotes.push(val.trim());
+            syncData();
         }
     }
 
-    function saveQuotes() {
-        localStorage.setItem('userQuotes', JSON.stringify(userQuotes));
+    function editQuote(index) {
+        const val = prompt("修改語錄內容：", userQuotes[index]);
+        if (val && val.trim()) {
+            userQuotes[index] = val.trim();
+            syncData();
+        }
     }
 
+    function deleteQuote(index) {
+        if (userQuotes.length <= 1) return alert("請至少保留一句語錄！");
+        if (confirm("確定刪除這句嗎？")) {
+            userQuotes.splice(index, 1);
+            syncData();
+        }
+    }
+
+    function resetDefault() {
+        if (confirm("這會刪除你目前所有的自訂語錄，恢復成初始的10句。確定嗎？")) {
+            userQuotes = [...defaultQuotes];
+            syncData();
+        }
+    }
+
+    function syncData() {
+        localStorage.setItem('userQuotes', JSON.stringify(userQuotes));
+        renderList();
+        nextQuote();
+    }
+
+    // --- 原有倒數邏輯 ---
     function editGoal() {
         const newGoal = prompt("請輸入目標：", document.getElementById('display-goal').innerText);
         if (newGoal) {
@@ -163,15 +226,10 @@
     function updateCountdown() {
         const targetDate = document.getElementById('target-date').value;
         const target = new Date(targetDate + 'T00:00:00').getTime();
-        const now = new Date().getTime();
-        const diff = target - now;
+        const diff = target - new Date().getTime();
         
-        const dDisplay = document.getElementById('days-val');
-        const tDisplay = document.getElementById('time-val');
-
         if (diff <= 0) {
-            dDisplay.innerText = "NOW";
-            tDisplay.innerText = "00 : 00 : 00";
+            document.getElementById('days-val').innerText = "NOW";
             return;
         }
 
@@ -180,14 +238,13 @@
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
 
-        dDisplay.innerText = d;
-        tDisplay.innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
+        document.getElementById('days-val').innerText = d;
+        document.getElementById('time-val').innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
         
         const minguoYear = new Date(targetDate).getFullYear() - 1911;
         document.getElementById('main-title').innerText = `${minguoYear} 學科能力測驗`;
     }
 
-    // 初始化
     document.getElementById('target-date').value = localStorage.getItem('examTargetDate') || '2027-01-16';
     document.getElementById('display-goal').innerText = localStorage.getItem('examTargetGoal') || '學測滿級分';
     setInterval(updateCountdown, 1000);
