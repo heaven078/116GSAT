@@ -59,14 +59,27 @@
             margin-bottom: 12px;
         }
 
-        .exam-date {
+        /* 修改後的日期選擇器樣式 */
+        .date-container {
+            margin-bottom: 25px;
+        }
+
+        .exam-date-input {
             font-size: 0.9rem;
             color: var(--secondary-text);
             background: #f1f2f6;
-            display: inline-block;
-            padding: 6px 18px;
+            border: none;
+            padding: 8px 15px;
             border-radius: 50px;
-            margin-bottom: 25px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .exam-date-input:hover {
+            background: #e2e3e9;
         }
 
         .countdown-display {
@@ -123,7 +136,6 @@
             font-weight: bold;
         }
 
-        /* --- 橫向模式優化 (手機橫著看時) --- */
         @media (max-height: 500px) and (orientation: landscape) {
             .exam-card {
                 max-width: 85%;
@@ -134,16 +146,11 @@
                 align-items: center;
                 text-align: left;
             }
-
             .exam-card::before { height: 4px; }
-
-            /* 左側區塊：標題與目標 */
             .header-section { grid-column: 1; }
             .exam-title { font-size: 1.2rem; margin-bottom: 5px; }
-            .exam-date { font-size: 0.7rem; margin-bottom: 10px; padding: 4px 12px; }
+            .date-container { margin-bottom: 10px; }
             .footer-note { margin-top: 10px; text-align: left; }
-
-            /* 右側區塊：數字與計時 */
             .countdown-section { 
                 grid-column: 2; 
                 border-left: 1px solid #eee;
@@ -152,8 +159,6 @@
             .countdown-display { font-size: 3.5rem; text-align: center; }
             .unit-label { font-size: 0.8rem; text-align: center; display: block; }
             .time-sub { font-size: 0.9rem; text-align: center; margin-top: 5px; }
-
-            /* 底部語錄：橫跨兩欄 */
             .quote-box { 
                 grid-column: 1 / span 2; 
                 margin-top: 5px; 
@@ -161,7 +166,6 @@
                 border-top: 1px solid #eee;
                 text-align: center;
             }
-            .click-hint { display: none; } /* 節省空間 */
         }
     </style>
 </head>
@@ -170,7 +174,9 @@
 <div class="exam-card">
     <div class="header-section">
         <div class="exam-title">116 學科能力測驗</div>
-        <div class="exam-date">2027-01-16 ~ 01-18 (預計)</div>
+        <div class="date-container">
+            <input type="date" id="target-date" class="exam-date-input" onchange="saveDate()">
+        </div>
         <div class="footer-note">
             © 2026 柿米果幸福快樂屋
             <span class="target-goal">目標：學測滿級分</span>
@@ -215,8 +221,26 @@
         "重要的不是你現在排在哪裡，而是你正朝著哪個方向前進。"
     ];
 
+    // 初始化日期：從 localStorage 讀取，若無則預設為 2027-01-16
+    const dateInput = document.getElementById('target-date');
+    const savedDate = localStorage.getItem('examTargetDate');
+    
+    if (savedDate) {
+        dateInput.value = savedDate;
+    } else {
+        dateInput.value = '2027-01-16';
+    }
+
+    function saveDate() {
+        localStorage.setItem('examTargetDate', dateInput.value);
+        updateCountdown(); // 立即更新倒數
+    }
+
     function updateCountdown() {
-        const target = new Date('2027-01-16T00:00:00').getTime();
+        const targetValue = document.getElementById('target-date').value;
+        if (!targetValue) return;
+
+        const target = new Date(targetValue + 'T00:00:00').getTime();
         const now = new Date().getTime();
         const diff = target - now;
 
