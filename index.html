@@ -104,14 +104,13 @@
             letter-spacing: 2px;
         }
 
-        /* 語錄框修正：強制單行 */
         .quote-box {
             margin-top: 25px;
-            padding: 10px 5px;
+            padding: 10px 10px;
             border-top: 1px dashed #dfe6e9;
             cursor: pointer;
             user-select: none;
-            overflow: hidden; /* 防止文字溢出 */
+            overflow: hidden;
         }
 
         #quote-text {
@@ -119,9 +118,9 @@
             color: var(--medical-blue);
             font-weight: 500;
             transition: opacity 0.3s;
-            white-space: nowrap; /* 強制不折行 */
+            white-space: nowrap; /* 強制一行 */
             display: block;
-            text-overflow: ellipsis; /* 太長顯示省略號 */
+            text-overflow: ellipsis; /* 太長顯示... */
         }
 
         .footer-note {
@@ -197,28 +196,35 @@
     const titleElement = document.getElementById('main-title');
     const quoteElement = document.getElementById('quote-text');
 
-    // 簡單的簡轉繁對照（API 有時 variant 會失效，此為雙重保險）
-    function toTC(str) {
-        return str.replace(/后/g, '後').replace(/里/g, '裡').replace(/发/g, '發').replace(/制/g, '製');
-        // 此處僅列舉常見錯誤，API 的 zh-tw 參數通常已足夠穩定
+    // 強制轉換繁體函數 (處理常見字體)
+    async function translateToTC(text) {
+        try {
+            // 使用專門的轉換 API 進行繁體化，確保準確性
+            const res = await fetch(`https://api.zhconvert.org/convert?converter=Taiwan&text=${encodeURIComponent(text)}`);
+            const data = await res.json();
+            return data.data.text;
+        } catch (e) {
+            return text; // 失敗則回傳原樣
+        }
     }
 
     async function refreshQuote() {
         quoteElement.style.opacity = 0.3;
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            const timeoutId = setTimeout(() => controller.abort(), 2500);
             
-            // 加上 variant=zh-tw 參數要求繁體
-            const response = await fetch('https://v1.hitokoto.cn/?c=d&c=e&c=k&variant=zh-tw', { signal: controller.signal });
+            const response = await fetch('https://v1.hitokoto.cn/?c=d&c=e&c=k', { signal: controller.signal });
             const data = await response.json();
+            clearTimeout(timeoutId);
+
+            // 進行繁體轉換
+            let text = await translateToTC(data.hitokoto);
             
-            let text = data.hitokoto;
-            // 若文字太長，截斷它以符合一行顯示的物理限制（大約 25-30 字）
-            if (text.length > 28) text = text.substring(0, 26) + "...";
+            // 強制一行顯示的長度限制
+            if (text.length > 30) text = text.substring(0, 28) + "...";
             
             quoteElement.innerText = `「${text}」`;
-            clearTimeout(timeoutId);
         } catch (error) {
             const randomBackup = backupQuotes[Math.floor(Math.random() * backupQuotes.length)];
             quoteElement.innerText = `「${randomBackup}」`;
