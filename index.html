@@ -56,25 +56,39 @@
         .unit-label { font-size: 1.1rem; font-weight: 700; color: #b2bec3; text-transform: uppercase; letter-spacing: 4px; }
         .time-sub { font-size: 1rem; color: var(--secondary-text); margin-top: 10px; font-family: 'Courier New', monospace; letter-spacing: 2px; }
 
-        /* 語錄區塊優化 */
+        /* 語錄區塊優化：支援兩行排列 */
         .quote-box {
-            margin-top: 25px; padding: 18px 10px; border-top: 1px dashed #dfe6e9;
-            cursor: pointer; background-color: #fffaf5; border-radius: 10px;
+            margin-top: 25px; 
+            padding: 20px 15px; 
+            border-top: 1px dashed #dfe6e9;
+            cursor: pointer; 
+            background-color: #fffaf5; 
+            border-radius: 12px;
             position: relative;
             transition: background 0.2s;
+            min-height: 54px; /* 固定最小高度，換行不跳動 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .quote-box:hover { background-color: #fff3e0; }
 
         #quote-text { 
-            font-size: 0.95rem; color: var(--medical-blue); font-weight: 500; 
-            white-space: nowrap; display: block; text-overflow: ellipsis; 
-            overflow: hidden; padding: 0 10px;
+            font-size: 1rem; 
+            color: var(--medical-blue); 
+            font-weight: 500; 
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 限制兩行 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 5px;
         }
         
-        /* 修改 Icon 樣式 */
         .edit-icon {
-            position: absolute; bottom: 5px; right: 8px;
-            width: 16px; height: 16px; fill: #ccc;
+            position: absolute; bottom: 6px; right: 8px;
+            width: 14px; height: 14px; fill: #d1d1d1;
             transition: fill 0.2s;
         }
         .quote-box:hover .edit-icon { fill: var(--medical-blue); }
@@ -83,7 +97,7 @@
         #display-goal { color: var(--primary-text); font-weight: bold; text-decoration: underline dotted #ccc; }
         .page-footer { font-size: 0.65rem; color: #b2bec3; text-align: center; padding-bottom: 20px; letter-spacing: 1px;}
 
-        /* 管理面板遮罩層 */
+        /* 管理面板樣式 */
         #mgmt-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -137,7 +151,7 @@
 
 <div class="page-footer">© 2026 柿米果幸福快樂屋</div>
 
-<div id="mgmt-overlay" onclick="closeMgmtOutside(event)">
+<div id="mgmt-overlay" onclick="closeMgmt()">
     <div class="mgmt-content" onclick="event.stopPropagation()">
         <div class="mgmt-header">
             <h3 style="margin:0; color: var(--primary-text);">語錄庫管理</h3>
@@ -184,8 +198,6 @@
         document.getElementById('mgmt-overlay').style.display = 'none';
     }
 
-    function closeMgmtOutside(e) { closeMgmt(); }
-
     function renderList() {
         const container = document.getElementById('quote-list-container');
         container.innerHTML = '';
@@ -226,7 +238,7 @@
     }
 
     function resetDefault() {
-        if (confirm("恢復成初始10句？這會清除你的自訂內容。")) {
+        if (confirm("恢復成初始 10 句？")) {
             userQuotes = [...defaultQuotes];
             syncData();
         }
