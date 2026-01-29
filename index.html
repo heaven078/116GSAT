@@ -106,7 +106,7 @@
 
         .quote-box {
             margin-top: 25px;
-            padding: 10px 10px;
+            padding: 12px 10px;
             border-top: 1px dashed #dfe6e9;
             cursor: pointer;
             user-select: none;
@@ -118,9 +118,9 @@
             color: var(--medical-blue);
             font-weight: 500;
             transition: opacity 0.3s;
-            white-space: nowrap; /* 強制一行 */
+            white-space: nowrap; 
             display: block;
-            text-overflow: ellipsis; /* 太長顯示... */
+            text-overflow: ellipsis; 
         }
 
         .footer-note {
@@ -172,8 +172,8 @@
     </div>
 
     <div class="quote-box" onclick="refreshQuote()">
-        <div id="quote-text">讀取中...</div>
-        <span style="font-size: 0.6rem; color: #ccc; display: block; margin-top: 5px;">(點擊換網路語錄)</span>
+        <div id="quote-text">獲取中...</div>
+        <span style="font-size: 0.6rem; color: #ccc; display: block; margin-top: 5px;">(點擊切換語錄)</span>
     </div>
 </div>
 
@@ -196,36 +196,24 @@
     const titleElement = document.getElementById('main-title');
     const quoteElement = document.getElementById('quote-text');
 
-    // 強制轉換繁體函數 (處理常見字體)
-    async function translateToTC(text) {
-        try {
-            // 使用專門的轉換 API 進行繁體化，確保準確性
-            const res = await fetch(`https://api.zhconvert.org/convert?converter=Taiwan&text=${encodeURIComponent(text)}`);
-            const data = await res.json();
-            return data.data.text;
-        } catch (e) {
-            return text; // 失敗則回傳原樣
-        }
-    }
-
     async function refreshQuote() {
         quoteElement.style.opacity = 0.3;
+        
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2500);
-            
-            const response = await fetch('https://v1.hitokoto.cn/?c=d&c=e&c=k', { signal: controller.signal });
+            // 使用更穩定支援繁體中文的 API 接口
+            const response = await fetch('https://v1.hitokoto.cn/?c=d&c=e&c=h&c=k');
             const data = await response.json();
-            clearTimeout(timeoutId);
-
-            // 進行繁體轉換
-            let text = await translateToTC(data.hitokoto);
             
-            // 強制一行顯示的長度限制
-            if (text.length > 30) text = text.substring(0, 28) + "...";
+            // 透過外部轉換服務進行繁體化，避免在程式碼中嵌入龐大字典
+            const convertRes = await fetch(`https://api.zhconvert.org/convert?converter=Taiwan&text=${encodeURIComponent(data.hitokoto)}`);
+            const convertData = await convertRes.json();
             
+            let text = convertData.data.text;
+            if (text.length > 28) text = text.substring(0, 26) + "...";
             quoteElement.innerText = `「${text}」`;
+            
         } catch (error) {
+            // 發生錯誤或跨域問題時，隨機挑選原本設定好的 10 句繁體語錄
             const randomBackup = backupQuotes[Math.floor(Math.random() * backupQuotes.length)];
             quoteElement.innerText = `「${randomBackup}」`;
         }
@@ -268,13 +256,10 @@
         const target = new Date(targetValue + 'T00:00:00').getTime();
         const now = new Date().getTime();
         const diff = target - now;
-
-        const dDisplay = document.getElementById('days-val');
-        const tDisplay = document.getElementById('time-val');
         
         if (diff <= 0) {
-            dDisplay.innerText = "NOW";
-            tDisplay.innerText = "00 : 00 : 00";
+            document.getElementById('days-val').innerText = "NOW";
+            document.getElementById('time-val').innerText = "00 : 00 : 00";
             return;
         }
 
@@ -283,8 +268,8 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        dDisplay.innerText = days;
-        tDisplay.innerText = `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
+        document.getElementById('days-val').innerText = days;
+        document.getElementById('time-val').innerText = `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
     }
 
     loadSavedData();
