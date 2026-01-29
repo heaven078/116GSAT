@@ -63,16 +63,17 @@
         }
 
         .exam-date-input {
-            font-size: 0.9rem;
+            font-size: 1rem; /* 稍微放大更好點 */
             color: var(--secondary-text);
             background: #f1f2f6;
-            border: 1px solid transparent;
-            padding: 8px 15px;
+            border: none;
+            padding: 10px 20px;
             border-radius: 50px;
             font-family: inherit;
             cursor: pointer;
             outline: none;
             text-align: center;
+            -webkit-appearance: none; /* 修正 iOS 樣式 */
         }
 
         .countdown-display {
@@ -116,41 +117,35 @@
             margin-top: 20px;
             font-size: 0.8rem;
             color: #b2bec3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        /* 重點修正：目標輸入框樣式 */
-        .target-goal-wrapper {
-            margin-top: 8px;
+        /* --- 目標修改區優化 --- */
+        .target-goal-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .target-goal-btn:active {
+            background-color: #e9ecef;
+            transform: scale(0.98);
+        }
+
+        .target-label {
+            color: var(--secondary-text);
+            font-weight: normal;
+        }
+
+        #display-goal {
             color: var(--primary-text);
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .target-goal-input {
-            border: none;
-            border-bottom: 1px dashed #ccc;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--primary-text);
-            text-align: center; /* 改為置中較美觀 */
-            width: 150px; /* 給予固定寬度確保點得到 */
-            padding: 2px 5px;
-            outline: none;
-            background: #fdfdfd;
-            transition: all 0.3s;
-        }
-
-        .target-goal-input:focus {
-            border-bottom: 1px solid var(--medical-blue);
-            background: #f0f7ff;
-            color: var(--medical-blue);
+            text-decoration: underline dotted #ccc;
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
@@ -158,8 +153,6 @@
             .header-section { grid-column: 1; }
             .countdown-section { grid-column: 2; border-left: 1px solid #eee; padding-left: 20px;}
             .quote-box { grid-column: 1 / span 2; margin-top: 5px; padding: 8px; border-top: 1px solid #eee; text-align: center;}
-            .target-goal-wrapper { justify-content: flex-start; }
-            .target-goal-input { text-align: left; }
         }
     </style>
 </head>
@@ -169,16 +162,12 @@
     <div class="header-section">
         <div class="exam-title">116 學科能力測驗</div>
         <div class="date-container">
-            <input type="date" id="target-date" class="exam-date-input" onchange="saveData()">
+            <input type="date" id="target-date" class="exam-date-input" onchange="saveDate()">
         </div>
         <div class="footer-note">
             <div>© 2026 柿米果幸福快樂屋</div>
-            <div class="target-goal-wrapper">
-                目標：<input type="text" id="target-goal" class="target-goal-input" 
-                       placeholder="輸入目標" 
-                       onblur="saveData()" 
-                       onfocus="this.select()"
-                       onkeypress="handleKey(event)">
+            <div class="target-goal-btn" onclick="editGoal()">
+                <span class="target-label">目標：</span><span id="display-goal">載入中...</span>
             </div>
         </div>
     </div>
@@ -193,7 +182,7 @@
 
     <div class="quote-box" onclick="refreshQuote()">
         <div id="quote-text">「所有的努力，都會在放榜那天開花結果。」</div>
-        <span style="font-size: 0.6rem; color: #ccc; display: block;">(點擊更換語錄)</span>
+        <span style="font-size: 0.6rem; color: #ccc; display: block;">(點擊換語錄 / 目標可點擊修改)</span>
     </div>
 </div>
 
@@ -206,7 +195,7 @@
         "目標滿級分：不是因為容易，而是因為值得。",
         "哪怕只有 1% 的機會，也要付出 100% 的努力。",
         "今天的自律，是為了明天更自由的靈魂。",
-        "進步不是一天兩天，而是日積月累積的堅持。",
+        "進步不是一天兩天，而是日積月累的堅持。",
         "想想你為什麼出發，夢想就在不遠處。",
         "當你想要放棄時，想想當初為什麼堅持。",
         "現在的每一滴汗水，都是在為未來的驚喜做鋪墊。",
@@ -222,21 +211,28 @@
     ];
 
     const dateInput = document.getElementById('target-date');
-    const goalInput = document.getElementById('target-goal');
+    const goalDisplay = document.getElementById('display-goal');
 
-    // 載入 localStorage
-    dateInput.value = localStorage.getItem('examTargetDate') || '2027-01-16';
-    goalInput.value = localStorage.getItem('examTargetGoal') || '學測滿級分';
+    // 載入 localStorage 資料
+    function loadSavedData() {
+        dateInput.value = localStorage.getItem('examTargetDate') || '2027-01-16';
+        goalDisplay.innerText = localStorage.getItem('examTargetGoal') || '學測滿級分';
+    }
 
-    function saveData() {
+    // 儲存日期
+    function saveDate() {
         localStorage.setItem('examTargetDate', dateInput.value);
-        localStorage.setItem('examTargetGoal', goalInput.value);
         updateCountdown();
     }
 
-    function handleKey(e) {
-        if (e.key === 'Enter') {
-            goalInput.blur(); 
+    // 修改目標（使用 Prompt 彈出視窗，手機操作最穩）
+    function editGoal() {
+        const currentGoal = goalDisplay.innerText;
+        const newGoal = prompt("請輸入你的奮鬥目標：", currentGoal);
+        
+        if (newGoal !== null && newGoal.trim() !== "") {
+            goalDisplay.innerText = newGoal;
+            localStorage.setItem('examTargetGoal', newGoal);
         }
     }
 
@@ -278,6 +274,8 @@
         quoteElement.innerText = `「${newQuote}」`;
     }
 
+    // 初始化執行
+    loadSavedData();
     setInterval(updateCountdown, 1000);
     updateCountdown();
     refreshQuote();
