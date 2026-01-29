@@ -39,7 +39,6 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
         .exam-card::before {
@@ -67,7 +66,7 @@
             font-size: 0.9rem;
             color: var(--secondary-text);
             background: #f1f2f6;
-            border: none;
+            border: 1px solid transparent;
             padding: 8px 15px;
             border-radius: 50px;
             font-family: inherit;
@@ -117,67 +116,50 @@
             margin-top: 20px;
             font-size: 0.8rem;
             color: #b2bec3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* 目標輸入欄位樣式 */
+        /* 重點修正：目標輸入框樣式 */
         .target-goal-wrapper {
-            display: block;
-            margin-top: 5px;
+            margin-top: 8px;
             color: var(--primary-text);
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
         }
 
         .target-goal-input {
             border: none;
-            border-bottom: 1px solid transparent;
+            border-bottom: 1px dashed #ccc;
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: var(--primary-text);
-            text-align: left;
-            width: auto;
-            max-width: 200px;
+            text-align: center; /* 改為置中較美觀 */
+            width: 150px; /* 給予固定寬度確保點得到 */
+            padding: 2px 5px;
             outline: none;
-            background: transparent;
-            cursor: edit;
-            transition: border-bottom 0.3s;
+            background: #fdfdfd;
+            transition: all 0.3s;
         }
 
         .target-goal-input:focus {
             border-bottom: 1px solid var(--medical-blue);
+            background: #f0f7ff;
             color: var(--medical-blue);
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
-            .exam-card {
-                max-width: 85%;
-                padding: 15px 30px;
-                display: grid;
-                grid-template-columns: 1fr 1.2fr;
-                gap: 15px;
-                align-items: center;
-                text-align: left;
-            }
-            .exam-card::before { height: 4px; }
+            .exam-card { max-width: 85%; padding: 15px 30px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px; align-items: center; text-align: left;}
             .header-section { grid-column: 1; }
-            .exam-title { font-size: 1.2rem; margin-bottom: 5px; }
-            .date-container { margin-bottom: 10px; }
-            .footer-note { margin-top: 10px; text-align: left; }
-            .countdown-section { 
-                grid-column: 2; 
-                border-left: 1px solid #eee;
-                padding-left: 20px;
-            }
-            .countdown-display { font-size: 3.5rem; text-align: center; }
-            .unit-label { font-size: 0.8rem; text-align: center; display: block; }
-            .time-sub { font-size: 0.9rem; text-align: center; margin-top: 5px; }
-            .quote-box { 
-                grid-column: 1 / span 2; 
-                margin-top: 5px; 
-                padding: 8px; 
-                border-top: 1px solid #eee;
-                text-align: center;
-            }
+            .countdown-section { grid-column: 2; border-left: 1px solid #eee; padding-left: 20px;}
+            .quote-box { grid-column: 1 / span 2; margin-top: 5px; padding: 8px; border-top: 1px solid #eee; text-align: center;}
+            .target-goal-wrapper { justify-content: flex-start; }
+            .target-goal-input { text-align: left; }
         }
     </style>
 </head>
@@ -190,10 +172,14 @@
             <input type="date" id="target-date" class="exam-date-input" onchange="saveData()">
         </div>
         <div class="footer-note">
-            © 2026 柿米果幸福快樂屋
-            <span class="target-goal-wrapper">
-                目標：<input type="text" id="target-goal" class="target-goal-input" onblur="saveData()" onkeypress="handleKey(event)">
-            </span>
+            <div>© 2026 柿米果幸福快樂屋</div>
+            <div class="target-goal-wrapper">
+                目標：<input type="text" id="target-goal" class="target-goal-input" 
+                       placeholder="輸入目標" 
+                       onblur="saveData()" 
+                       onfocus="this.select()"
+                       onkeypress="handleKey(event)">
+            </div>
         </div>
     </div>
     
@@ -207,7 +193,7 @@
 
     <div class="quote-box" onclick="refreshQuote()">
         <div id="quote-text">「所有的努力，都會在放榜那天開花結果。」</div>
-        <span style="font-size: 0.7rem; color: #ccc; display: block;">(點擊更換語錄)</span>
+        <span style="font-size: 0.6rem; color: #ccc; display: block;">(點擊更換語錄)</span>
     </div>
 </div>
 
@@ -220,7 +206,7 @@
         "目標滿級分：不是因為容易，而是因為值得。",
         "哪怕只有 1% 的機會，也要付出 100% 的努力。",
         "今天的自律，是為了明天更自由的靈魂。",
-        "進步不是一天兩天，而是日積月累的堅持。",
+        "進步不是一天兩天，而是日積月累積的堅持。",
         "想想你為什麼出發，夢想就在不遠處。",
         "當你想要放棄時，想想當初為什麼堅持。",
         "現在的每一滴汗水，都是在為未來的驚喜做鋪墊。",
@@ -235,29 +221,22 @@
         "重要的不是你現在排在哪裡，而是你正朝著哪個方向進。"
     ];
 
-    // 初始化讀取資料
     const dateInput = document.getElementById('target-date');
     const goalInput = document.getElementById('target-goal');
 
-    // 載入日期
-    const savedDate = localStorage.getItem('examTargetDate');
-    dateInput.value = savedDate || '2027-01-16';
+    // 載入 localStorage
+    dateInput.value = localStorage.getItem('examTargetDate') || '2027-01-16';
+    goalInput.value = localStorage.getItem('examTargetGoal') || '學測滿級分';
 
-    // 載入目標
-    const savedGoal = localStorage.getItem('examTargetGoal');
-    goalInput.value = savedGoal || '學測滿級分';
-
-    // 儲存資料
     function saveData() {
         localStorage.setItem('examTargetDate', dateInput.value);
         localStorage.setItem('examTargetGoal', goalInput.value);
         updateCountdown();
     }
 
-    // 處理 Enter 鍵
     function handleKey(e) {
         if (e.key === 'Enter') {
-            goalInput.blur(); // 觸發儲存
+            goalInput.blur(); 
         }
     }
 
