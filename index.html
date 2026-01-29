@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>學科能力測驗倒數 - 柿米果幸福快樂屋</title>
+    <title>考試倒數計時器 - 柿米果幸福快樂屋</title>
     
     <link rel="apple-touch-icon" href="doctor.jpg">
     <link rel="icon" type="image/jpeg" href="doctor_s2.jpg">
@@ -48,7 +48,17 @@
             background: linear-gradient(90deg, var(--accent-color), var(--medical-blue));
         }
 
-        .exam-title { font-size: 1.6rem; font-weight: bold; color: var(--primary-text); margin-bottom: 12px; }
+        /* 標題改為可點擊樣式 */
+        .exam-title { 
+            font-size: 1.6rem; 
+            font-weight: bold; 
+            color: var(--primary-text); 
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .exam-title:hover { opacity: 0.7; }
+
         .date-container { margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; color: var(--secondary-text); }
         .exam-date-input { font-size: 0.95rem; color: var(--medical-blue); background: #f1f2f6; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; outline: none;}
         
@@ -56,7 +66,6 @@
         .unit-label { font-size: 1.1rem; font-weight: 700; color: #b2bec3; text-transform: uppercase; letter-spacing: 4px; }
         .time-sub { font-size: 1rem; color: var(--secondary-text); margin-top: 10px; font-family: 'Courier New', monospace; letter-spacing: 2px; }
 
-        /* 語錄區塊優化：支援兩行排列 */
         .quote-box {
             margin-top: 25px; 
             padding: 20px 15px; 
@@ -66,7 +75,7 @@
             border-radius: 12px;
             position: relative;
             transition: background 0.2s;
-            min-height: 54px; /* 固定最小高度，換行不跳動 */
+            min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -79,25 +88,22 @@
             font-weight: 500; 
             line-height: 1.6;
             display: -webkit-box;
-            -webkit-line-clamp: 2; /* 限制兩行 */
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding: 0 5px;
         }
         
         .edit-icon {
             position: absolute; bottom: 6px; right: 8px;
             width: 14px; height: 14px; fill: #d1d1d1;
-            transition: fill 0.2s;
         }
-        .quote-box:hover .edit-icon { fill: var(--medical-blue); }
 
         .target-goal-btn { margin-top: 10px; padding: 8px 15px; background-color: #f8f9fa; border: 1px solid #eee; border-radius: 10px; cursor: pointer; display: inline-block; }
         #display-goal { color: var(--primary-text); font-weight: bold; text-decoration: underline dotted #ccc; }
         .page-footer { font-size: 0.65rem; color: #b2bec3; text-align: center; padding-bottom: 20px; letter-spacing: 1px;}
 
-        /* 管理面板樣式 */
+        /* 管理面板 */
         #mgmt-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -125,7 +131,7 @@
 
 <div class="exam-card">
     <div class="header-section">
-        <div class="exam-title" id="main-title">學科能力測驗</div>
+        <div class="exam-title" id="main-title" onclick="editTitle()">載入中...</div>
         <div class="date-container">
             <span>考試日期：</span>
             <input type="date" id="target-date" class="exam-date-input" onchange="saveDate()">
@@ -171,13 +177,23 @@
         "這段路很長、很累，但請相信，最後留下的會是最好的你。",
         "不是因為看到希望才堅持，而是因為堅持了才看到希望。",
         "考卷上的每一道紅字，都是在幫你掃平通往夢想的障礙。",
-        "願你在放榜的那天，能對得起這段挑燈夜戰的日子。",
+        "願你在放榜的那天，能對對起這段挑燈夜戰的日子。",
         "乾坤未定，你我皆是黑馬；即便身處低谷，也要仰望星空。",
         "讀書或許辛苦，但那是你目前用來翻轉未來最輕盈的武器。",
         "重要的不是你現在排在哪裡，而是你正朝著哪個方向進發。"
     ];
 
     let userQuotes = JSON.parse(localStorage.getItem('userQuotes')) || [...defaultQuotes];
+    let customTitle = localStorage.getItem('examCustomTitle') || '學科能力測驗';
+
+    function editTitle() {
+        const newTitle = prompt("請輸入考試名稱：", customTitle);
+        if (newTitle && newTitle.trim()) {
+            customTitle = newTitle.trim();
+            localStorage.setItem('examCustomTitle', customTitle);
+            updateDisplay();
+        }
+    }
 
     function nextQuote() {
         if (userQuotes.length === 0) {
@@ -204,44 +220,24 @@
         userQuotes.forEach((q, index) => {
             const item = document.createElement('div');
             item.className = 'quote-item';
-            item.innerHTML = `
-                <span>${q}</span>
-                <button class="btn btn-edit" onclick="editQuote(${index})">改</button>
-                <button class="btn btn-del" onclick="deleteQuote(${index})">刪</button>
-            `;
+            item.innerHTML = `<span>${q}</span><button class="btn btn-edit" onclick="editQuote(${index})">改</button><button class="btn btn-del" onclick="deleteQuote(${index})">刪</button>`;
             container.appendChild(item);
         });
     }
 
     function addNewQuote() {
-        const val = prompt("請輸入新的勵志語錄：");
-        if (val && val.trim()) {
-            userQuotes.push(val.trim());
-            syncData();
-        }
+        const val = prompt("請輸入新語錄：");
+        if (val && val.trim()) { userQuotes.push(val.trim()); syncData(); }
     }
 
     function editQuote(index) {
-        const val = prompt("修改語錄內容：", userQuotes[index]);
-        if (val && val.trim()) {
-            userQuotes[index] = val.trim();
-            syncData();
-        }
+        const val = prompt("修改語錄：", userQuotes[index]);
+        if (val && val.trim()) { userQuotes[index] = val.trim(); syncData(); }
     }
 
     function deleteQuote(index) {
-        if (userQuotes.length <= 1) return alert("請至少保留一句語錄！");
-        if (confirm("確定刪除這句嗎？")) {
-            userQuotes.splice(index, 1);
-            syncData();
-        }
-    }
-
-    function resetDefault() {
-        if (confirm("恢復成初始 10 句？")) {
-            userQuotes = [...defaultQuotes];
-            syncData();
-        }
+        if (userQuotes.length <= 1) return alert("至少保留一句！");
+        if (confirm("刪除嗎？")) { userQuotes.splice(index, 1); syncData(); }
     }
 
     function syncData() {
@@ -251,19 +247,19 @@
     }
 
     function editGoal() {
-        const newGoal = prompt("請輸入奮鬥目標：", document.getElementById('display-goal').innerText);
-        if (newGoal && newGoal.trim()) {
-            document.getElementById('display-goal').innerText = newGoal.trim();
-            localStorage.setItem('examTargetGoal', newGoal.trim());
+        const newGoal = prompt("奮鬥目標：", document.getElementById('display-goal').innerText);
+        if (newGoal) {
+            document.getElementById('display-goal').innerText = newGoal;
+            localStorage.setItem('examTargetGoal', newGoal);
         }
     }
 
     function saveDate() {
         localStorage.setItem('examTargetDate', document.getElementById('target-date').value);
-        updateCountdown();
+        updateDisplay();
     }
 
-    function updateCountdown() {
+    function updateDisplay() {
         const targetDateStr = document.getElementById('target-date').value;
         const target = new Date(targetDateStr + 'T00:00:00').getTime();
         const diff = target - new Date().getTime();
@@ -274,25 +270,27 @@
         if (diff <= 0) {
             dDisplay.innerText = "NOW";
             tDisplay.innerText = "00 : 00 : 00";
-            return;
+        } else {
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            dDisplay.innerText = d;
+            tDisplay.innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
         }
-
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-
-        dDisplay.innerText = d;
-        tDisplay.innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
         
         const minguoYear = new Date(targetDateStr).getFullYear() - 1911;
-        document.getElementById('main-title').innerText = `${minguoYear} 學科能力測驗`;
+        document.getElementById('main-title').innerText = `${minguoYear} ${customTitle}`;
+    }
+
+    function resetDefault() {
+        if (confirm("恢復預設語錄？")) { userQuotes = [...defaultQuotes]; syncData(); }
     }
 
     document.getElementById('target-date').value = localStorage.getItem('examTargetDate') || '2027-01-16';
     document.getElementById('display-goal').innerText = localStorage.getItem('examTargetGoal') || '學測滿級分';
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
+    setInterval(updateDisplay, 1000);
+    updateDisplay();
     nextQuote();
 </script>
 </body>
