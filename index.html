@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>學科能力測驗倒數 - 柿米果幸福快樂屋</title>
+    
+    <link rel="apple-touch-icon" href="doctor.jpg">
+    <link rel="icon" type="image/jpeg" href="doctor_s2.jpg">
+    
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -46,7 +50,8 @@
 
         .exam-title { font-size: 1.6rem; font-weight: bold; color: var(--primary-text); margin-bottom: 12px; }
         .date-container { margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; color: var(--secondary-text); }
-        .exam-date-input { font-size: 0.95rem; color: var(--medical-blue); background: #f1f2f6; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+        .exam-date-input { font-size: 0.95rem; color: var(--medical-blue); background: #f1f2f6; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; outline: none;}
+        
         .countdown-display { font-size: 6rem; font-weight: 900; color: var(--accent-color); line-height: 1; }
         .unit-label { font-size: 1.1rem; font-weight: 700; color: #b2bec3; text-transform: uppercase; letter-spacing: 4px; }
         .time-sub { font-size: 1rem; color: var(--secondary-text); margin-top: 10px; font-family: 'Courier New', monospace; letter-spacing: 2px; }
@@ -54,16 +59,18 @@
         .quote-box {
             margin-top: 25px; padding: 15px 10px; border-top: 1px dashed #dfe6e9;
             cursor: pointer; background-color: #fffaf5; border-radius: 10px;
+            transition: background 0.2s;
         }
+        .quote-box:hover { background-color: #fff3e0; }
 
         #quote-text { font-size: 0.95rem; color: var(--medical-blue); font-weight: 500; white-space: nowrap; display: block; text-overflow: ellipsis; overflow: hidden; }
         
-        .mgmt-btn { font-size: 0.7rem; color: var(--medical-blue); text-decoration: underline; cursor: pointer; margin-top: 5px; display: block; }
+        .mgmt-btn { font-size: 0.7rem; color: var(--medical-blue); text-decoration: underline; cursor: pointer; margin-top: 5px; display: block; opacity: 0.7; }
         .target-goal-btn { margin-top: 10px; padding: 8px 15px; background-color: #f8f9fa; border: 1px solid #eee; border-radius: 10px; cursor: pointer; display: inline-block; }
         #display-goal { color: var(--primary-text); font-weight: bold; text-decoration: underline dotted #ccc; }
-        .page-footer { font-size: 0.65rem; color: #b2bec3; text-align: center; padding-bottom: 20px; }
+        .page-footer { font-size: 0.65rem; color: #b2bec3; text-align: center; padding-bottom: 20px; letter-spacing: 1px;}
 
-        /* 管理面板樣式 */
+        /* 管理面板遮罩層 */
         #mgmt-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -73,16 +80,18 @@
         .mgmt-content {
             background: white; width: 90%; max-width: 450px; height: 80vh;
             border-radius: 15px; padding: 20px; display: flex; flex-direction: column;
+            box-sizing: border-box;
         }
-        .mgmt-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .quote-list { flex: 1; overflow-y: auto; margin: 15px 0; padding-right: 5px; }
-        .quote-item { display: flex; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
-        .quote-item span { flex: 1; }
-        .btn { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 0.8rem; }
+        .mgmt-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .quote-list { flex: 1; overflow-y: auto; margin: 15px 0; padding-right: 5px; text-align: left;}
+        .quote-item { display: flex; gap: 10px; align-items: center; padding: 12px 8px; border-bottom: 1px solid #f5f5f5; font-size: 0.9rem; }
+        .quote-item span { flex: 1; word-break: break-all; }
+        
+        .btn { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem; font-family: inherit;}
         .btn-edit { background: #e3f2fd; color: #1976d2; }
         .btn-del { background: #ffebee; color: #c62828; }
-        .btn-add { background: var(--medical-blue); color: white; width: 100%; padding: 10px; }
-        .close-overlay { font-size: 1.5rem; cursor: pointer; color: #ccc; }
+        .btn-add { background: var(--medical-blue); color: white; width: 100%; padding: 12px; font-weight: bold; margin-top: 5px;}
+        .close-overlay { font-size: 1.8rem; cursor: pointer; color: #bbb; line-height: 1;}
     </style>
 </head>
 <body>
@@ -106,23 +115,23 @@
     </div>
 
     <div class="quote-box" onclick="nextQuote()">
-        <div id="quote-text">載入中...</div>
-        <span class="mgmt-btn" onclick="openMgmt(event)">管理所有語錄</span>
+        <div id="quote-text">讀取語錄中...</div>
+        <span class="mgmt-btn" onclick="openMgmt(event)">管理所有語錄清單</span>
     </div>
 </div>
 
 <div class="page-footer">© 2026 柿米果幸福快樂屋</div>
 
-<div id="mgmt-overlay">
-    <div class="mgmt-content">
+<div id="mgmt-overlay" onclick="closeMgmtOutside(event)">
+    <div class="mgmt-content" onclick="event.stopPropagation()">
         <div class="mgmt-header">
-            <h3 style="margin:0">語錄庫管理</h3>
+            <h3 style="margin:0; color: var(--primary-text);">語錄庫管理</h3>
             <span class="close-overlay" onclick="closeMgmt()">&times;</span>
         </div>
         <div class="quote-list" id="quote-list-container">
             </div>
         <button class="btn btn-add" onclick="addNewQuote()">+ 新增一句勵志語錄</button>
-        <button class="btn" style="margin-top:10px; color:#999" onclick="resetDefault()">恢復預設語錄</button>
+        <button class="btn" style="margin-top:10px; color:#aaa; background:none;" onclick="resetDefault()">恢復預設語錄</button>
     </div>
 </div>
 
@@ -143,6 +152,10 @@
     let userQuotes = JSON.parse(localStorage.getItem('userQuotes')) || [...defaultQuotes];
 
     function nextQuote() {
+        if (userQuotes.length === 0) {
+            document.getElementById('quote-text').innerText = "「請先新增語錄」";
+            return;
+        }
         const rand = Math.floor(Math.random() * userQuotes.length);
         document.getElementById('quote-text').innerText = `「${userQuotes[rand]}」`;
     }
@@ -155,6 +168,10 @@
 
     function closeMgmt() {
         document.getElementById('mgmt-overlay').style.display = 'none';
+    }
+
+    function closeMgmtOutside(e) {
+        closeMgmt();
     }
 
     function renderList() {
@@ -173,7 +190,7 @@
     }
 
     function addNewQuote() {
-        const val = prompt("請輸入新的語錄：");
+        const val = prompt("請輸入新的勵志語錄：");
         if (val && val.trim()) {
             userQuotes.push(val.trim());
             syncData();
@@ -189,15 +206,18 @@
     }
 
     function deleteQuote(index) {
-        if (userQuotes.length <= 1) return alert("請至少保留一句語錄！");
-        if (confirm("確定刪除這句嗎？")) {
+        if (userQuotes.length <= 1) {
+            alert("請至少保留一句語錄！");
+            return;
+        }
+        if (confirm("確定要刪除這句語錄嗎？")) {
             userQuotes.splice(index, 1);
             syncData();
         }
     }
 
     function resetDefault() {
-        if (confirm("這會刪除你目前所有的自訂語錄，恢復成初始的10句。確定嗎？")) {
+        if (confirm("這會清空所有自訂內容，恢復成原本的10句。確定要重設嗎？")) {
             userQuotes = [...defaultQuotes];
             syncData();
         }
@@ -209,12 +229,12 @@
         nextQuote();
     }
 
-    // --- 原有倒數邏輯 ---
+    // --- 核心倒數計時邏輯 ---
     function editGoal() {
-        const newGoal = prompt("請輸入目標：", document.getElementById('display-goal').innerText);
-        if (newGoal) {
-            document.getElementById('display-goal').innerText = newGoal;
-            localStorage.setItem('examTargetGoal', newGoal);
+        const newGoal = prompt("請輸入你的奮鬥目標：", document.getElementById('display-goal').innerText);
+        if (newGoal && newGoal.trim()) {
+            document.getElementById('display-goal').innerText = newGoal.trim();
+            localStorage.setItem('examTargetGoal', newGoal.trim());
         }
     }
 
@@ -224,12 +244,19 @@
     }
 
     function updateCountdown() {
-        const targetDate = document.getElementById('target-date').value;
-        const target = new Date(targetDate + 'T00:00:00').getTime();
-        const diff = target - new Date().getTime();
+        const targetDateStr = document.getElementById('target-date').value;
+        if (!targetDateStr) return;
         
+        const target = new Date(targetDateStr + 'T00:00:00').getTime();
+        const now = new Date().getTime();
+        const diff = target - now;
+        
+        const dDisplay = document.getElementById('days-val');
+        const tDisplay = document.getElementById('time-val');
+
         if (diff <= 0) {
-            document.getElementById('days-val').innerText = "NOW";
+            dDisplay.innerText = "NOW";
+            tDisplay.innerText = "00 : 00 : 00";
             return;
         }
 
@@ -238,15 +265,17 @@
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
 
-        document.getElementById('days-val').innerText = d;
-        document.getElementById('time-val').innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
+        dDisplay.innerText = d;
+        tDisplay.innerText = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
         
-        const minguoYear = new Date(targetDate).getFullYear() - 1911;
+        const minguoYear = new Date(targetDateStr).getFullYear() - 1911;
         document.getElementById('main-title').innerText = `${minguoYear} 學科能力測驗`;
     }
 
+    // 初始化載入
     document.getElementById('target-date').value = localStorage.getItem('examTargetDate') || '2027-01-16';
     document.getElementById('display-goal').innerText = localStorage.getItem('examTargetGoal') || '學測滿級分';
+    
     setInterval(updateCountdown, 1000);
     updateCountdown();
     nextQuote();
