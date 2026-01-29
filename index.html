@@ -58,7 +58,6 @@
             margin-bottom: 12px;
         }
 
-        /* 日期區塊排版優化 */
         .date-container {
             margin-bottom: 25px;
             display: flex;
@@ -79,8 +78,6 @@
             font-family: inherit;
             cursor: pointer;
             outline: none;
-            text-align: center;
-            -webkit-appearance: none;
             font-weight: 600;
         }
 
@@ -113,12 +110,18 @@
             border-top: 1px dashed #dfe6e9;
             cursor: pointer;
             user-select: none;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         #quote-text {
             font-size: 0.95rem;
             color: var(--medical-blue);
             font-weight: 500;
+            transition: opacity 0.3s;
+            line-height: 1.4;
         }
 
         .footer-note {
@@ -135,7 +138,6 @@
             border-radius: 10px;
             cursor: pointer;
             display: inline-block;
-            transition: all 0.2s;
         }
 
         #display-goal {
@@ -179,23 +181,14 @@
     </div>
 
     <div class="quote-box" onclick="refreshQuote()">
-        <div id="quote-text">「所有的努力，都會在放榜那天開花結果。」</div>
-        <span style="font-size: 0.6rem; color: #ccc; display: block;">(點擊換語錄 / 目標可點擊修改)</span>
+        <div id="quote-text">正在尋找靈感...</div>
+        <span style="font-size: 0.6rem; color: #ccc; display: block; margin-top: 5px;">(點擊換網路語錄)</span>
     </div>
 </div>
 
 <script>
-    const quotes = [
-        "所有的努力，都會在放榜那天開花結果。",
-        "現在辛苦一點，是為了以後選擇權在自己手上。",
-        "靜下心來，專注於眼前的每一道題目。",
-        "你流過的汗水，會變成未來診間裡的從容。",
-        "目標滿級分：不是因為容易，而是因為值得。",
-        "哪怕只有 1% 的機會，也要付出 100% 的努力。",
-        "今天的自律，是為了明天更自由的靈魂。",
-        "進步不是一天兩天，而是日積月累的堅持。",
-        "想想你為什麼出發，夢想就在不遠處。",
-        "當你想要放棄時，想想當初為什麼堅持。",
+    // 恢復為原本指定的 10 句勵志語錄
+    const backupQuotes = [
         "現在的每一滴汗水，都是在為未來的驚喜做鋪墊。",
         "學測不是終點，而是讓你走向更廣闊世界的起點。",
         "別人在休息時，你的每一分鐘堅持，都是在拉開差距。",
@@ -211,6 +204,7 @@
     const dateInput = document.getElementById('target-date');
     const goalDisplay = document.getElementById('display-goal');
     const titleElement = document.getElementById('main-title');
+    const quoteElement = document.getElementById('quote-text');
 
     function loadSavedData() {
         dateInput.value = localStorage.getItem('examTargetDate') || '2027-01-16';
@@ -232,6 +226,25 @@
         }
     }
 
+    // 優先從網路抓取，失敗或連線慢則使用 backupQuotes
+    async function refreshQuote() {
+        quoteElement.style.opacity = 0.3;
+        try {
+            // 設定 2 秒超時，避免網路太慢卡住
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            
+            const response = await fetch('https://v1.hitokoto.cn/?c=d&c=e&c=k', { signal: controller.signal });
+            const data = await response.json();
+            quoteElement.innerText = `「${data.hitokoto}」`;
+            clearTimeout(timeoutId);
+        } catch (error) {
+            const randomBackup = backupQuotes[Math.floor(Math.random() * backupQuotes.length)];
+            quoteElement.innerText = `「${randomBackup}」`;
+        }
+        quoteElement.style.opacity = 1;
+    }
+
     function editGoal() {
         const currentGoal = goalDisplay.innerText;
         const newGoal = prompt("請輸入你的奮鬥目標：", currentGoal);
@@ -251,12 +264,10 @@
 
         const dDisplay = document.getElementById('days-val');
         const tDisplay = document.getElementById('time-val');
-        const unitLabel = document.querySelector('.unit-label');
-
+        
         if (diff <= 0) {
             dDisplay.innerText = "NOW";
             tDisplay.innerText = "00 : 00 : 00";
-            unitLabel.innerText = "Days";
             return;
         }
 
@@ -267,16 +278,6 @@
 
         dDisplay.innerText = days;
         tDisplay.innerText = `${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
-    }
-
-    function refreshQuote() {
-        const quoteElement = document.getElementById('quote-text');
-        let currentQuote = quoteElement.innerText.replace(/[「」]/g, '');
-        let newQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        while (newQuote === currentQuote) {
-            newQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        }
-        quoteElement.innerText = `「${newQuote}」`;
     }
 
     loadSavedData();
